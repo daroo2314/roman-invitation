@@ -1,236 +1,1069 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0" />
-<title>초대장</title>
-<style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+  <title>초대장 - EXHIBITION 2026</title>
+  <meta name="description" content="EXHIBITION 2026 모바일 초대장 및 전시 안내 페이지" />
+  <meta property="og:title" content="초대장 - EXHIBITION 2026" />
+  <meta property="og:description" content="EXHIBITION 2026 모바일 초대장 및 전시 안내 페이지" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  
+  <!-- 웹 폰트 (Cinzel & Noto Sans KR) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: #14130f;
-    font-family: Arial, sans-serif;
-  }
+  <style>
+    /* ----------------------------------------------------
+       RESET & BASE STYLES
+       ---------------------------------------------------- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-  .stage {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    background: #14130f;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+    html, body {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background-color: #0d0c0a;
+      color: #ede8df;
+      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
-  .frame {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
+    /* Ambient Background Lighting */
+    .bg-ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 65%),
+        radial-gradient(circle at 50% 88%, rgba(0, 0, 0, 0.95) 0%, #0d0c0a 85%);
+    }
 
-  .frame img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    animation: fadeIn 1s ease-out both;
-  }
+    .bg-vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
+    }
 
-  /* 큰 화면(태블릿/데스크톱)에서는 잘리지 않고 카드 형태로 전체가 보이게 */
-  @media (min-width: 700px) {
-    .frame {
+    /* ----------------------------------------------------
+       MAIN PAGE LAYOUT
+       ---------------------------------------------------- */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 10px 16px 24px 16px;
+    }
+
+    /* Header Bar (프레임 상단 배치) */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      align-self: stretch;
+      padding: 0 4px 6px 4px;
+    }
+
+    .brand-tag {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #d4af37;
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: #dfd8cb;
+      text-transform: uppercase;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .frame-switcher {
+      display: flex;
+      background: #191714;
+      border: 1px solid #2d2922;
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .frame-btn {
+      background: transparent;
+      border: none;
+      color: #9c9386;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .frame-btn.active {
+      background: rgba(212, 175, 55, 0.2);
+      color: #f5d77f;
+      font-weight: 600;
+    }
+
+    .icon-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #191714;
+      border: 1px solid #2d2922;
+      color: #c9c0b1;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:hover {
+      background: #25221d;
+      color: #ffffff;
+      border-color: #4a4337;
+    }
+
+    /* ----------------------------------------------------
+       GALLERY FRAME & EMBEDDED CTA
+       ---------------------------------------------------- */
+    .stage-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 4px 0 12px 0;
+      margin: auto;
+    }
+
+    .gallery-frame-container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: fit-content;
+      max-width: 100%;
+      gap: 12px; /* 프레임 바로 아래에 버튼 간격 */
+    }
+
+    /* 스타일 1: 갤러리 골드 액자 (기본) - 이미지 크기에 밀착 */
+    .gallery-frame {
+      position: relative;
+      padding: 8px;
+      border-radius: 16px;
+      background: linear-gradient(145deg, #24201a, #13110e);
+      border: 1.5px solid rgba(212, 175, 55, 0.4);
+      box-shadow: 
+        0 16px 45px rgba(0, 0, 0, 0.88),
+        0 0 20px rgba(212, 175, 55, 0.12);
+      display: inline-flex;
+      flex-direction: column;
+      width: fit-content;
+      max-width: 100%;
+      cursor: zoom-in;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .gallery-frame:hover {
+      box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.95),
+        0 0 26px rgba(212, 175, 55, 0.22);
+    }
+
+    /* 스타일 2: 모던 다크 액자 */
+    .gallery-frame.modern {
+      padding: 6px;
+      background: #171512;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.85);
+    }
+
+    .frame-inner-matting {
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+      background-color: #0a0907;
+      border: 1px solid #26221a;
+      display: flex;
+      flex-direction: column;
+      width: fit-content;
+    }
+
+    /* 프레임 높이를 이미지의 실제 크기에 100% 일치 */
+    .image-viewport {
+      position: relative;
+      display: block;
+      line-height: 0;
+      font-size: 0;
+      overflow: hidden;
+      background-color: #0c0b09;
+    }
+
+    .invitation-img {
+      display: block;
       width: auto;
-      height: 92vh;
-      aspect-ratio: 2160 / 3840;
-      max-width: 92vw;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+      height: auto;
+      max-width: min(390px, 86vw);
+      max-height: calc(100dvh - 200px);
+      object-fit: contain;
+      transition: transform 0.4s ease-out;
     }
-  }
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
+    .gallery-frame:hover .invitation-img {
+      transform: scale(1.018);
+    }
 
-  /* ================= Brutalist Button (from Uiverse.io by 0xnihilism, adapted) ================= */
+    /* Zoom Overlay Badge */
+    .zoom-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(18, 16, 13, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      color: #f7e6b5;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 5px 10px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s ease;
+      z-index: 2;
+    }
 
-  .cta-wrap {
-    position: absolute;
-    left: 48.9%;
-    top: 85.1%;
-    transform: translate(-50%, -50%);
-    animation: ctaIn 0.7s ease-out 0.5s both;
-  }
+    .gallery-frame:hover .zoom-badge {
+      background: rgba(212, 175, 55, 0.95);
+      color: #0e0d0b;
+      transform: scale(1.05);
+    }
 
-  @keyframes ctaIn {
-    from { opacity: 0; transform: translate(-50%, -40%); }
-    to   { opacity: 1; transform: translate(-50%, -50%); }
-  }
+    /* Bottom Information Plate */
+    .frame-plate {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #110f0d;
+      border-top: 1px solid #231f18;
+      font-size: 11px;
+      color: #8c8273;
+    }
 
-  .brutalist-button {
-    font-size: clamp(9px, 3.3vw, 14px); /* 이 값이 버튼 전체 크기의 기준입니다 */
-    display: flex;
-    align-items: center;
-    width: 12em;
-    height: 5.5em;
-    background-color: #000000;
-    color: #000;
-    text-decoration: none;
-    border: 0.286em solid #000;
-    outline: 0.286em solid #f7f5f5;
-    box-shadow: 0.571em 0.571em 0 #000000;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    padding: 0 1.14em;
-    box-sizing: border-box;
-    position: relative;
-    overflow: hidden;
-    border-radius: 5px;
-  }
-  .brutalist-button::before {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      45deg,
-      transparent,
-      rgba(255, 255, 255, 0.8),
-      transparent
-    );
-    transform: rotate(45deg);
-    transition: 0.5s;
-    opacity: 0;
-  }
-  .brutalist-button:hover::before {
-    animation: glare 1.5s infinite;
-  }
-  @keyframes glare {
-    0% {
-      transform: rotate(45deg) translateY(-100%);
+    .frame-plate-title {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.12em;
+      color: #d1c7b7;
+      font-weight: 600;
+    }
+
+    /* ----------------------------------------------------
+       FRAME BOTTOM CTA BUTTON (프레임 하단 맞춤 버튼)
+       ---------------------------------------------------- */
+    .cta-frame-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      justify-content: center;
+      margin-top: 2px;
+      pointer-events: auto;
+    }
+
+    .exhibition-cta-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 58px;
+      padding: 0 16px;
+      background-color: #0b0a08;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 14px;
+      border: 2px solid #d4af37;
+      box-shadow: 
+        0 10px 25px rgba(0, 0, 0, 0.9),
+        0 0 18px rgba(212, 175, 55, 0.25);
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .exhibition-cta-btn:hover {
+      transform: translateY(-2px);
+      border-color: #ffd875;
+      box-shadow: 
+        0 14px 30px rgba(0, 0, 0, 0.95),
+        0 0 26px rgba(255, 216, 117, 0.45);
+    }
+
+    .exhibition-cta-btn:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Glare Light Effect */
+    .exhibition-cta-btn::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 35%,
+        rgba(255, 255, 255, 0.22) 50%,
+        transparent 65%
+      );
+      transform: rotate(45deg);
+      animation: buttonGlare 3.8s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes buttonGlare {
+      0% { transform: rotate(45deg) translateY(-140%); }
+      40%, 100% { transform: rotate(45deg) translateY(140%); }
+    }
+
+    .btn-left-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-brand-logo {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: #1a1814;
+      padding: 4px;
+      border: 1px solid #332d22;
+      transition: transform 0.4s ease;
+    }
+
+    .exhibition-cta-btn:hover .btn-brand-logo {
+      transform: rotate(10deg) scale(1.08);
+      border-color: #d4af37;
+    }
+
+    .btn-text-group {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      line-height: 1.25;
+      gap: 1px;
+    }
+
+    .btn-tagline {
+      font-size: 13px;
+      font-family: 'Cinzel', serif;
+      font-weight: 700;
+      letter-spacing: 0.12em; /* 0.1em 대비 20% 증가 */
+      color: #f7d57f;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .btn-main-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    .btn-arrow-icon {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(212, 175, 55, 0.15);
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      color: #ffd875;
+      transition: all 0.3s ease;
+    }
+
+    .exhibition-cta-btn:hover .btn-arrow-icon {
+      background: #ffd875;
+      color: #000000;
+      transform: translateX(3px);
+    }
+
+    /* ----------------------------------------------------
+       LIGHTBOX ZOOM MODAL (확대 및 제스처 뷰어)
+       ---------------------------------------------------- */
+    .lightbox-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      background: rgba(5, 5, 4, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      touch-action: none;
+      overflow: hidden;
       opacity: 0;
+      transition: opacity 0.25s ease;
     }
-    50% {
-      transform: rotate(45deg) translateY(100%);
+
+    .lightbox-modal.open {
+      display: flex;
       opacity: 1;
     }
-    100% {
-      transform: rotate(45deg) translateY(100%);
-      opacity: 0;
-    }
-  }
-  .brutalist-button:hover {
-    transform: translate(-0.286em, -0.286em);
-    box-shadow: 0.857em 0.857em 0 #ff4500;
-    background-color: #000;
-    color: #f0f0f0;
-    outline-color: #000;
-  }
-  .brutalist-button:active {
-    transform: translate(0.286em, 0.286em);
-    box-shadow: 0px 0px 0 #ff4500;
-    transition: all 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-  .brand-logo {
-    display: block;
-    width: 2.86em;
-    height: 1.86em;
-    margin-right: 1.14em;
-    flex-shrink: 0;
-    object-fit: contain;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    position: relative;
-    z-index: 2;
-    transform: rotate(0deg);
-    opacity: 0.5; /* 항상 50% 투명도 */
-  }
-  .brutalist-button:hover .brand-logo {
-    animation: logoSpin 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-  @keyframes logoSpin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-  .button-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.15;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    position: relative;
-    z-index: 2;
-  }
-  .brutalist-button:hover .button-text {
-    transform: skew(-5deg);
-  }
-  .button-text span:first-child {
-    font-size: 1em;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: bold;
-    color: #ffffff;
-  }
-  .button-text span:last-child {
-    font-size: 1.21em;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: #ffffff;
-  }
-  .brutalist-button:hover .button-text span:first-child {
-    color: #00a4ef;
-  }
-  .brutalist-button::after {
-    content: "►";
-    position: absolute;
-    right: -2.14em;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.71em;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-  .brutalist-button:hover::after {
-    right: 1.14em;
-  }
 
-  @media (prefers-reduced-motion: reduce) {
-    .frame img, .cta-wrap, .brutalist-button, .brutalist-button::before {
-      animation: none !important;
+    /* Top Bar */
+    .lightbox-topbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, transparent 100%);
+      pointer-events: auto;
     }
-  }
-</style>
+
+    .lightbox-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #ded7cb;
+    }
+
+    .zoom-rate-badge {
+      background: #211e18;
+      border: 1px solid #3d372c;
+      color: #f0c95e;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .lightbox-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Zoom Canvas Area */
+    .lightbox-viewport {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      overflow: hidden;
+    }
+
+    .lightbox-viewport:active {
+      cursor: grabbing;
+    }
+
+    .lightbox-transform-layer {
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-origin: center center;
+      transition: transform 0.08s ease-out;
+      will-change: transform;
+    }
+
+    .lightbox-img {
+      max-width: 90vw;
+      max-height: 82vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+      pointer-events: auto;
+    }
+
+    /* Bottom Zoom Controls */
+    .lightbox-bottom-controls {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(22, 20, 16, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid #383227;
+      padding: 6px 12px;
+      border-radius: 30px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.85);
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    .control-btn {
+      background: transparent;
+      border: none;
+      color: #d1c7b7;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+
+    .control-btn:hover {
+      background: #2b271f;
+      color: #ffffff;
+    }
+
+    .preset-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #a69d8f;
+      font-size: 12px;
+      font-family: monospace;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .preset-btn.active {
+      background: rgba(212, 175, 55, 0.2);
+      border-color: rgba(212, 175, 55, 0.4);
+      color: #ffd875;
+    }
+
+    .divider {
+      width: 1px;
+      height: 16px;
+      background-color: #383227;
+      margin: 0 2px;
+    }
+
+    /* Toast notification */
+    .toast-alert {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(25, 23, 19, 0.95);
+      border: 1px solid #d4af37;
+      color: #ffd875;
+      font-size: 12px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .toast-alert.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      .page-wrapper {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-bottom: 18px;
+      }
+      .invitation-img {
+        max-width: 86vw;
+        max-height: calc(100dvh - 200px);
+      }
+      .exhibition-cta-btn {
+        height: 54px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <div class="stage">
-    <div class="frame">
-      <img src="https://github.com/daroo2314/norman-sns/blob/main/invitation_web.webp?raw=true" alt="초대장" />
+  <!-- Ambient Light Backgrounds -->
+  <div class="bg-ambient"></div>
+  <div class="bg-vignette"></div>
 
-      <div class="cta-wrap">
-        <!-- 바로가기 링크는 href 값만 바꾸면 됩니다 -->
-        <a class="brutalist-button" href="https://daroo2314.github.io/norman/" target="_blank" rel="noopener" aria-label="EXHIBITION 2026 바로가기">
-          <img class="brand-logo" src="https://github.com/daroo2314/norman-sns/blob/main/%EB%A1%9C%EA%B3%A0-%EC%9D%B4%EB%AF%B8%EC%A7%80.png?raw=true" alt="" style="position: absolute; right: 0.5em; top: 50%; transform: translateY(-50%); height: 100%; pointer-events: none;" />
+  <!-- Page Wrapper -->
+  <div class="page-wrapper">
     
-    
-          <span class="button-text">
-            <span>EXHIBITION 2026</span>
-            <span>바로가기</span>
-          </span>
-        </a>
+    <!-- Center Gallery Stage (액자 구조: 상단 헤더, 중앙 프레임, 하단 버튼 일체형) -->
+    <main class="stage-area" id="main-stage">
+      <div class="gallery-frame-container" id="frame-container">
+        
+        <!-- Header Bar (프레임 상단) -->
+        <header class="header-bar" id="header-bar">
+          <div class="brand-tag">
+            <span class="brand-dot"></span>
+            <span class="brand-title">EXHIBITION 2026</span>
+          </div>
+
+          <div class="header-actions">
+            <!-- Frame Style Switcher -->
+            <div class="frame-switcher">
+              <button class="frame-btn active" id="btn-style-gold" onclick="setFrameStyle('gold')" title="골드 액자">액자형</button>
+              <button class="frame-btn" id="btn-style-modern" onclick="setFrameStyle('modern')" title="모던 액자">모던형</button>
+            </div>
+
+            <!-- Share Button -->
+            <button class="icon-btn" id="btn-share" onclick="handleShare()" title="초대장 공유">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <!-- 클릭 시 확대 뷰어 열림 -->
+        <div class="gallery-frame" id="gallery-frame" onclick="openLightbox()" role="button" tabindex="0" title="클릭하여 확대보기">
+          <div class="frame-inner-matting">
+            
+            <div class="image-viewport">
+              <img 
+                id="main-invitation-image"
+                class="invitation-img"
+                src="https://github.com/daroo2314/roman-invitation/blob/main/invitation-web.webp?raw=true" 
+                alt="EXHIBITION 2026 공식 초대장"
+                loading="eager"
+              />
+
+              <!-- 확대보기 배지 -->
+              <div class="zoom-badge" id="zoom-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+                <span>확대보기</span>
+              </div>
+            </div>
+
+            <!-- 하단 갤러리 명판 -->
+            <div class="frame-plate">
+              <span class="frame-plate-title">INVITATION</span>
+              <span>2026 EXHIBITION</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 프레임 바로 하단 버튼 -->
+        <div class="cta-frame-container" id="cta-container">
+          <a 
+            class="exhibition-cta-btn" 
+            id="btn-exhibition-link"
+            href="https://daroo2314.github.io/norman/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            aria-label="EXHIBITION 2026 전시회 미리보기"
+          >
+            <div class="btn-left-content">
+              <img 
+                class="btn-brand-logo" 
+                src="https://github.com/daroo2314/norman-sns/blob/main/%EB%A1%9C%EA%B3%A0-%EC%9D%B4%EB%AF%B8%EC%A7%80.png?raw=true" 
+                alt="Norman Logo" 
+              />
+              <div class="btn-text-group">
+                <span class="btn-tagline">EXHIBITION 2026</span>
+                <span class="btn-main-text">전시회 미리보기</span>
+              </div>
+            </div>
+
+            <div class="btn-arrow-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+          </a>
+        </div>
+
       </div>
-    </div>
+    </main>
+
   </div>
 
+  <!-- Interactive Lightbox Modal (확대 뷰어) -->
+  <div class="lightbox-modal" id="lightbox-modal" onclick="onLightboxBgClick(event)">
+    
+    <!-- Top Bar -->
+    <div class="lightbox-topbar">
+      <div class="lightbox-info">
+        <span style="font-weight: 600;">초대장 상세</span>
+        <span class="zoom-rate-badge" id="zoom-rate-text">100%</span>
+        <span style="font-size: 11px; color: #8a8275; display: none;" id="touch-hint">(더블탭/핀치로 확대)</span>
+      </div>
+
+      <div class="lightbox-actions">
+        <a 
+          id="btn-view-original"
+          class="icon-btn" 
+          href="https://github.com/daroo2314/roman-invitation/blob/main/invitation-web.webp?raw=true" 
+          target="_blank" 
+          rel="noopener" 
+          title="원본 이미지 새창 열기"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
+        <button class="icon-btn" onclick="closeLightbox()" title="닫기 (ESC)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Zoom Canvas Viewport -->
+    <div 
+      class="lightbox-viewport" 
+      id="lightbox-viewport"
+      onmousedown="startDrag(event)"
+      onmousemove="onDrag(event)"
+      onmouseup="endDrag()"
+      onmouseleave="endDrag()"
+      ontouchstart="handleTouchStart(event)"
+      ontouchmove="handleTouchMove(event)"
+      ontouchend="handleTouchEnd(event)"
+      ondblclick="toggleZoom(event)"
+    >
+      <div class="lightbox-transform-layer" id="lightbox-transform-layer">
+        <img 
+          id="modal-invitation-image"
+          class="lightbox-img" 
+          src="https://github.com/daroo2314/roman-invitation/blob/main/invitation-web.webp?raw=true" 
+          alt="초대장 상세 이미지"
+          draggable="false"
+        />
+      </div>
+    </div>
+
+    <!-- Bottom Controls -->
+    <div class="lightbox-bottom-controls" onclick="event.stopPropagation()">
+      <button class="control-btn" onclick="changeZoom(-0.4)" title="축소 (-)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
+      <button class="preset-btn active" id="btn-zoom-1x" onclick="setZoomLevel(1)">1.0x</button>
+      <button class="preset-btn" id="btn-zoom-2x" onclick="setZoomLevel(2)">2.0x</button>
+      <button class="preset-btn" id="btn-zoom-3x" onclick="setZoomLevel(3)">3.0x</button>
+
+      <button class="control-btn" onclick="changeZoom(0.4)" title="확대 (+)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+
+      <div class="divider"></div>
+
+      <button class="control-btn" onclick="resetZoom()" title="초기화 (0)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Toast Alert -->
+  <div class="toast-alert" id="toast-alert">
+    초대장 링크가 클립보드에 복사되었습니다.
+  </div>
+
+  <!-- ----------------------------------------------------
+       VANILLA JAVASCRIPT LOGIC
+       ---------------------------------------------------- -->
+  <script>
+    /* State */
+    let currentScale = 1;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let initialTouchDistance = null;
+
+    const modal = document.getElementById('lightbox-modal');
+    const transformLayer = document.getElementById('lightbox-transform-layer');
+    const zoomText = document.getElementById('zoom-rate-text');
+    const toast = document.getElementById('toast-alert');
+    const galleryFrame = document.getElementById('gallery-frame');
+    const btnGold = document.getElementById('btn-style-gold');
+    const btnModern = document.getElementById('btn-style-modern');
+
+    /* Frame Style Switch */
+    function setFrameStyle(style) {
+      if (style === 'modern') {
+        galleryFrame.classList.add('modern');
+        btnModern.classList.add('active');
+        btnGold.classList.remove('active');
+      } else {
+        galleryFrame.classList.remove('modern');
+        btnGold.classList.add('active');
+        btnModern.classList.remove('active');
+      }
+    }
+
+    /* Share & Clipboard */
+    async function handleShare() {
+      const shareData = {
+        title: '초대장 - EXHIBITION 2026',
+        text: 'EXHIBITION 2026 공식 초대장에 귀하를 초대합니다.',
+        url: window.location.href,
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (e) {
+          // Fallback to clipboard
+        }
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          showToast('초대장 링크가 클립보드에 복사되었습니다.');
+        }).catch(() => {
+          showToast('주소창의 링크를 복사하여 공유해주세요.');
+        });
+      } else {
+        showToast('주소창의 링크를 복사하여 공유해주세요.');
+      }
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    /* Lightbox Open/Close */
+    function openLightbox() {
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      resetZoom();
+    }
+
+    function closeLightbox() {
+      modal.classList.remove('open');
+      document.body.style.overflow = '';
+      resetZoom();
+    }
+
+    function onLightboxBgClick(e) {
+      if (e.target === modal || e.target.id === 'lightbox-viewport') {
+        closeLightbox();
+      }
+    }
+
+    /* Update Transform View */
+    function applyTransform() {
+      transformLayer.style.transform = `translate3d(${panX}px, ${panY}px, 0px) scale(${currentScale})`;
+      zoomText.textContent = `${Math.round(currentScale * 100)}%`;
+
+      // Update preset buttons
+      document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+      if (Math.abs(currentScale - 1) < 0.1) {
+        document.getElementById('btn-zoom-1x')?.classList.add('active');
+      } else if (Math.abs(currentScale - 2) < 0.1) {
+        document.getElementById('btn-zoom-2x')?.classList.add('active');
+      } else if (Math.abs(currentScale - 3) < 0.1) {
+        document.getElementById('btn-zoom-3x')?.classList.add('active');
+      }
+    }
+
+    function resetZoom() {
+      currentScale = 1;
+      panX = 0;
+      panY = 0;
+      applyTransform();
+    }
+
+    function setZoomLevel(lvl) {
+      currentScale = lvl;
+      if (lvl === 1) {
+        panX = 0;
+        panY = 0;
+      }
+      applyTransform();
+    }
+
+    function changeZoom(delta) {
+      const nextScale = Math.min(Math.max(currentScale + delta, 1), 4);
+      currentScale = nextScale;
+      if (currentScale === 1) {
+        panX = 0;
+        panY = 0;
+      }
+      applyTransform();
+    }
+
+    function toggleZoom(e) {
+      e.stopPropagation();
+      if (currentScale > 1.2) {
+        resetZoom();
+      } else {
+        currentScale = 2.2;
+        applyTransform();
+      }
+    }
+
+    /* Mouse Wheel Zoom */
+    document.getElementById('lightbox-viewport').addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = -e.deltaY * 0.0018;
+      const nextScale = Math.min(Math.max(currentScale + zoomFactor, 1), 4);
+      currentScale = nextScale;
+      if (currentScale === 1) {
+        panX = 0;
+        panY = 0;
+      }
+      applyTransform();
+    }, { passive: false });
+
+    /* Mouse Drag Handlers */
+    function startDrag(e) {
+      if (currentScale <= 1) return;
+      isDragging = true;
+      dragStartX = e.clientX - panX;
+      dragStartY = e.clientY - panY;
+    }
+
+    function onDrag(e) {
+      if (!isDragging || currentScale <= 1) return;
+      panX = e.clientX - dragStartX;
+      panY = e.clientY - dragStartY;
+      applyTransform();
+    }
+
+    function endDrag() {
+      isDragging = false;
+    }
+
+    /* Touch Gestures (Pinch & Pan) */
+    function handleTouchStart(e) {
+      if (e.touches.length === 1 && currentScale > 1) {
+        isDragging = true;
+        dragStartX = e.touches[0].clientX - panX;
+        dragStartY = e.touches[0].clientY - panY;
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        initialTouchDistance = Math.hypot(dx, dy);
+      }
+    }
+
+    function handleTouchMove(e) {
+      if (e.touches.length === 1 && isDragging && currentScale > 1) {
+        panX = e.touches[0].clientX - dragStartX;
+        panY = e.touches[0].clientY - dragStartY;
+        applyTransform();
+      } else if (e.touches.length === 2 && initialTouchDistance !== null) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        const diff = dist - initialTouchDistance;
+        currentScale = Math.min(Math.max(currentScale + diff * 0.006, 1), 4);
+        initialTouchDistance = dist;
+        applyTransform();
+      }
+    }
+
+    function handleTouchEnd() {
+      isDragging = false;
+      initialTouchDistance = null;
+    }
+
+    /* Keyboard Shortcuts */
+    window.addEventListener('keydown', (e) => {
+      if (!modal.classList.contains('open')) return;
+      if (e.key === 'Escape') {
+        closeLightbox();
+      } else if (e.key === '+' || e.key === '=') {
+        changeZoom(0.5);
+      } else if (e.key === '-') {
+        changeZoom(-0.5);
+      } else if (e.key === '0') {
+        resetZoom();
+      }
+    });
+  </script>
 </body>
 </html>
