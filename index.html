@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0" />
+<title>초대장</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #14130f;
+    font-family: Arial, sans-serif;
+  }
+
+  .stage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    background: #14130f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .frame img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    animation: fadeIn 1s ease-out both;
+  }
+
+  /* 큰 화면(태블릿/데스크톱)에서는 잘리지 않고 카드 형태로 전체가 보이게 */
+  @media (min-width: 700px) {
+    .frame {
+      width: auto;
+      height: 92vh;
+      aspect-ratio: 2160 / 3840;
+      max-width: 92vw;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+    }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ================= Brutalist Button (from Uiverse.io by 0xnihilism, adapted) ================= */
+
+  .cta-wrap {
+    position: absolute;
+    left: 48.9%;
+    top: 85.1%;
+    transform: translate(-50%, -50%);
+    animation: ctaIn 0.7s ease-out 0.5s both;
+  }
+
+  @keyframes ctaIn {
+    from { opacity: 0; transform: translate(-50%, -40%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  .brutalist-button {
+    font-size: clamp(9px, 3.3vw, 14px); /* 이 값이 버튼 전체 크기의 기준입니다 */
+    display: flex;
+    align-items: center;
+    width: 12em;
+    height: 5.5em;
+    background-color: #000000;
+    color: #000;
+    text-decoration: none;
+    border: 0.286em solid #000;
+    outline: 0.286em solid #f7f5f5;
+    box-shadow: 0.571em 0.571em 0 #000000;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    padding: 0 1.14em;
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    border-radius: 5px;
+  }
+  .brutalist-button::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    );
+    transform: rotate(45deg);
+    transition: 0.5s;
+    opacity: 0;
+  }
+  .brutalist-button:hover::before {
+    animation: glare 1.5s infinite;
+  }
+  @keyframes glare {
+    0% {
+      transform: rotate(45deg) translateY(-100%);
+      opacity: 0;
+    }
+    50% {
+      transform: rotate(45deg) translateY(100%);
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(45deg) translateY(100%);
+      opacity: 0;
+    }
+  }
+  .brutalist-button:hover {
+    transform: translate(-0.286em, -0.286em);
+    box-shadow: 0.857em 0.857em 0 #ff4500;
+    background-color: #000;
+    color: #f0f0f0;
+    outline-color: #000;
+  }
+  .brutalist-button:active {
+    transform: translate(0.286em, 0.286em);
+    box-shadow: 0px 0px 0 #ff4500;
+    transition: all 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .brand-logo {
+    display: block;
+    width: 2.86em;
+    height: 1.86em;
+    margin-right: 1.14em;
+    flex-shrink: 0;
+    object-fit: contain;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    z-index: 2;
+    transform: rotate(0deg);
+    opacity: 0.5; /* 항상 50% 투명도 */
+  }
+  .brutalist-button:hover .brand-logo {
+    animation: logoSpin 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  @keyframes logoSpin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  .button-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    z-index: 2;
+  }
+  .brutalist-button:hover .button-text {
+    transform: skew(-5deg);
+  }
+  .button-text span:first-child {
+    font-size: 1em;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: bold;
+    color: #ffffff;
+  }
+  .button-text span:last-child {
+    font-size: 1.21em;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #ffffff;
+  }
+  .brutalist-button:hover .button-text span:first-child {
+    color: #00a4ef;
+  }
+  .brutalist-button::after {
+    content: "►";
+    position: absolute;
+    right: -2.14em;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.71em;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  .brutalist-button:hover::after {
+    right: 1.14em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .frame img, .cta-wrap, .brutalist-button, .brutalist-button::before {
+      animation: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="stage">
+    <div class="frame">
+      <img src="https://github.com/daroo2314/norman-sns/blob/main/invitation_web.webp?raw=true" alt="초대장" />
+
+      <div class="cta-wrap">
+        <!-- 바로가기 링크는 href 값만 바꾸면 됩니다 -->
+        <a class="brutalist-button" href="https://daroo2314.github.io/norman/" target="_blank" rel="noopener" aria-label="EXHIBITION 2026 바로가기">
+          <img class="brand-logo" src="https://github.com/daroo2314/norman-sns/blob/main/%EB%A1%9C%EA%B3%A0-%EC%9D%B4%EB%AF%B8%EC%A7%80.png?raw=true" alt="" style="position: absolute; right: 0.5em; top: 50%; transform: translateY(-50%); height: 100%; pointer-events: none;" />
+    
+    
+          <span class="button-text">
+            <span>EXHIBITION 2026</span>
+            <span>바로가기</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
