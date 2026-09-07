@@ -10,10 +10,11 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   
-  <!-- 웹 폰트 (Cinzel & Noto Sans KR) -->
+  <!-- 웹 폰트 (Cinzel, Montserrat & Noto Sans KR) & FontAwesome 아이콘 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
   <style>
     /* ----------------------------------------------------
@@ -169,6 +170,18 @@
       width: fit-content;
       max-width: 100%;
       gap: 12px; /* 프레임 바로 아래에 버튼 간격 */
+      transform-origin: center center;
+      will-change: transform;
+      touch-action: pan-y;
+    }
+
+    .gallery-frame-container.is-zoomed {
+      z-index: 40;
+      touch-action: none;
+    }
+
+    .gallery-frame-container.is-dragging {
+      cursor: grabbing;
     }
 
     /* 갤러리 골드 액자 - 이미지 및 프레임 일체형 확대/축소 */
@@ -246,26 +259,26 @@
       -webkit-user-drag: none;
     }
 
-    /* 줌 상태 인디케이터 (확대 시에만 살짝 표시 및 탭하면 100% 복귀) */
+    /* 줌 상태 인디케이터 (확대 시에만 살짝 표시 및 탭하면 100% 복귀 - 30% 축소) */
     .zoom-indicator {
       position: absolute;
-      bottom: 10px;
-      right: 10px;
+      bottom: 8px;
+      right: 8px;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      gap: 3px;
       background: rgba(18, 16, 13, 0.88);
       border: 1px solid rgba(212, 175, 55, 0.45);
-      border-radius: 14px;
-      padding: 3px 9px;
+      border-radius: 10px;
+      padding: 2px 6.5px;
       color: #ffd875;
-      font-size: 11px;
+      font-size: 8px;
       font-family: monospace;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease, transform 0.2s ease;
       cursor: pointer;
-      z-index: 5;
+      z-index: 25;
     }
 
     .zoom-indicator.visible {
@@ -275,6 +288,50 @@
 
     .zoom-indicator:active {
       transform: scale(0.95);
+    }
+
+    /* 액자 프레임 우측 상단 확대보기 / 원본크기 버튼 (버튼 및 텍스트 30% 축소) */
+    .frame-zoom-toggle-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      z-index: 30;
+      display: inline-flex;
+      align-items: center;
+      gap: 3.5px;
+      padding: 3.5px 7px;
+      background: rgba(18, 16, 13, 0.9);
+      border: 1px solid rgba(212, 175, 55, 0.7);
+      border-radius: 13px;
+      color: #ffd875;
+      font-size: 8px;
+      font-weight: 600;
+      font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.8), 0 0 8px rgba(212, 175, 55, 0.2);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      touch-action: manipulation;
+    }
+
+    .frame-zoom-toggle-btn:hover {
+      background: #252018;
+      border-color: #ffd875;
+      color: #ffffff;
+      transform: scale(1.04);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.45);
+    }
+
+    .frame-zoom-toggle-btn:active {
+      transform: scale(0.96);
+    }
+
+    .frame-zoom-toggle-btn.is-zoomed {
+      background: rgba(212, 175, 55, 0.25);
+      border-color: #ffd875;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
     }
 
     /* Bottom Information Plate */
@@ -437,6 +494,398 @@
       transform: translateX(3px);
     }
 
+    /* ----------------------------------------------------
+       LOCATION & VENUE INFO SECTION (관람 안내 및 구글 약도)
+       ---------------------------------------------------- */
+    #location {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: 2px 0 4px 0;
+      padding: 8px 12px 9px 12px;
+      background: linear-gradient(155deg, #161410 0%, #0f0d0b 100%);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 12px;
+      box-shadow: 
+        0 10px 24px rgba(0, 0, 0, 0.82),
+        0 0 14px rgba(212, 175, 55, 0.08);
+      font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+    }
+
+    .location-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.18);
+      gap: 6px;
+    }
+
+    .loc-title-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .loc-badge {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #d4af37;
+      background: rgba(212, 175, 55, 0.12);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      white-space: nowrap;
+    }
+
+    .loc-gallery-name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .loc-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .loc-zoom-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 3.5px;
+      font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+      font-size: 8px; /* 30% 축소 규격 */
+      font-weight: 600;
+      color: #ffd875;
+      background: #1e1a14;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      padding: 3px 6.5px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+
+    .loc-zoom-btn:hover {
+      background: #d4af37;
+      color: #0b0a08;
+      border-color: #ffd875;
+    }
+
+    .loc-map-direct-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffd875;
+      background: #1e1a14;
+      border: 1px solid rgba(212, 175, 55, 0.45);
+      padding: 2.5px 7px;
+      border-radius: 6px;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .loc-map-direct-link:hover {
+      background: #d4af37;
+      color: #0b0a08;
+      border-color: #ffd875;
+    }
+
+    .loc-body {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 5px;
+    }
+
+    .loc-info-col {
+      flex: 1.3;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 3.5px;
+      min-width: 0;
+    }
+
+    .loc-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    .loc-item i {
+      color: #d4af37;
+      font-size: 10px;
+      width: 13px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .loc-text {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 10.5px;
+    }
+
+    .loc-lbl {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #9e9382;
+      flex-shrink: 0;
+    }
+
+    .loc-val {
+      font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+      font-size: 11px;
+      color: #ece4d7;
+      font-weight: 400;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* 지도 컬럼 및 지도 높이를 20% 확대 (58px -> 70px) */
+    .loc-map-col {
+      flex: 1.05;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 120px;
+    }
+
+    .mini-map-box {
+      position: relative;
+      width: 100%;
+      height: 70px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #2a241b;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+      background-color: #12100d;
+      text-decoration: none;
+      display: block;
+      cursor: pointer;
+    }
+
+    .mini-map-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
+    .mini-map-box:hover .mini-map-img {
+      transform: scale(1.06);
+    }
+
+    .map-overlay-badge {
+      position: absolute;
+      bottom: 3.5px;
+      right: 4px;
+      background: rgba(18, 16, 13, 0.88);
+      border: 1px solid rgba(212, 175, 55, 0.55);
+      border-radius: 4px;
+      padding: 1.5px 5px;
+      font-size: 8.5px;
+      font-weight: 600;
+      color: #ffd875;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      transition: all 0.2s ease;
+    }
+
+    .mini-map-box:hover .map-overlay-badge {
+      background: #d4af37;
+      color: #0b0a08;
+    }
+
+    /* ----------------------------------------------------
+       LOCATION DETAIL MODAL (관람안내 모바일 크게보기 팝업)
+       ---------------------------------------------------- */
+    .location-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 150;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .location-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .location-modal-card {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(155deg, #181511 0%, #0e0c09 100%);
+      border: 1.5px solid rgba(212, 175, 55, 0.5);
+      border-radius: 18px;
+      padding: 22px 18px 20px 18px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 30px rgba(212, 175, 55, 0.15);
+      transform: scale(0.92);
+      transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+      max-height: 88vh;
+      overflow-y: auto;
+      font-family: 'Montserrat', 'Noto Sans KR', sans-serif;
+    }
+
+    .location-modal-overlay.active .location-modal-card {
+      transform: scale(1);
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #252019;
+      border: 1px solid rgba(212, 175, 55, 0.4);
+      color: #ffd875;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-close-btn:hover {
+      background: #d4af37;
+      color: #0b0a08;
+    }
+
+    .modal-title-area {
+      margin-bottom: 16px;
+      padding-right: 32px;
+    }
+
+    .modal-badge {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: #d4af37;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .modal-gallery-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.02em;
+    }
+
+    .modal-info-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-info-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      background: rgba(25, 22, 17, 0.7);
+      border: 1px solid #2d261c;
+      border-radius: 8px;
+    }
+
+    .modal-info-item i {
+      color: #d4af37;
+      font-size: 14px;
+      margin-top: 2px;
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .modal-info-lbl {
+      display: block;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #9e9382;
+      margin-bottom: 1px;
+    }
+
+    .modal-info-val {
+      display: block;
+      font-size: 12.5px;
+      color: #eee7db;
+      line-height: 1.35;
+    }
+
+    .modal-map-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 44px;
+      background: linear-gradient(135deg, #252018 0%, #171410 100%);
+      border: 1.5px solid #d4af37;
+      border-radius: 10px;
+      color: #ffd875;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+      transition: all 0.2s ease;
+      margin-top: 14px;
+    }
+
+    .modal-map-link-btn:hover {
+      background: #d4af37;
+      color: #0b0a08;
+    }
+
     /* Toast notification */
     .toast-alert {
       position: fixed;
@@ -527,6 +976,19 @@
                 draggable="false"
               />
 
+              <!-- 오른쪽 위 확대보기 / 원본크기 버튼 -->
+              <button 
+                type="button" 
+                class="frame-zoom-toggle-btn" 
+                id="btn-frame-zoom-toggle" 
+                onclick="toggleRightHalfZoom(event)" 
+                title="모시는 글 확대보기"
+                aria-label="모시는 글 확대보기"
+              >
+                <i class="fa-solid fa-magnifying-glass-plus" id="zoom-toggle-icon"></i>
+                <span id="zoom-toggle-text">확대보기</span>
+              </button>
+
               <!-- 확대 시 나타나는 미니 100% 복귀 버튼 -->
               <div class="zoom-indicator" id="zoom-indicator" onclick="resetMainZoom(event)" title="100% 원본 크기로 복귀">
                 <span id="zoom-indicator-text">100%</span>
@@ -536,12 +998,95 @@
 
             <!-- 하단 갤러리 명판 -->
             <div class="frame-plate">
-              <span class="frame-plate-title">INVITATION</span>
-              <span>2026 EXHIBITION</span>
+              <span class="frame-plate-title">EXHIBITION 2026</span>
+              <span>INVITATION</span>
             </div>
 
           </div>
         </div>
+
+        <!-- Location & Exhibition Info (관람 안내 및 약도 지도) -->
+        <section id="location">
+          <div class="location-top-bar">
+            <div class="loc-title-group">
+              <span class="loc-badge">VENUE</span>
+              <span class="loc-gallery-name">EK Gallery</span>
+            </div>
+            <div class="loc-top-actions">
+              <!-- 이전의 관람안내 크게보기 팝업 버튼 복원 -->
+              <button 
+                type="button" 
+                class="loc-zoom-btn" 
+                onclick="openLocationModal(event)" 
+                title="관람안내 크게보기"
+                aria-label="관람안내 크게보기"
+              >
+                <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                <span>크게보기</span>
+              </button>
+              <!-- 구글 지도 길찾기 링크 -->
+              <a href="https://maps.google.com/?q=1125+S+Crenshaw+Blvd,+Los+Angeles,+CA+90019" target="_blank" class="loc-map-direct-link" rel="noopener noreferrer" title="구글 지도 길찾기">
+                <i class="fa-solid fa-diamond-turn-right"></i> 길찾기
+              </a>
+            </div>
+          </div>
+
+          <div class="loc-body">
+            <!-- 안내 텍스트 컬럼 -->
+            <div class="loc-info-col">
+              <div class="loc-item">
+                <i class="fa-solid fa-location-dot"></i>
+                <div class="loc-text">
+                  <span class="loc-lbl">ADDRESS</span>
+                  <span class="loc-val" title="1125 S Crenshaw Blvd, Los Angeles, CA 90019">1125 S Crenshaw Blvd, LA</span>
+                </div>
+              </div>
+              <div class="loc-item">
+                <i class="fa-regular fa-clock"></i>
+                <div class="loc-text">
+                  <span class="loc-lbl">DATE</span>
+                  <span class="loc-val">09. 19 — 09. 25 (11AM-5PM)</span>
+                </div>
+              </div>
+              <div class="loc-item">
+                <i class="fa-solid fa-champagne-glasses"></i>
+                <div class="loc-text">
+                  <span class="loc-lbl">RECEPTION</span>
+                  <span class="loc-val">09. 19 (Sat) 3:00 PM</span>
+                </div>
+              </div>
+              <div class="loc-item">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <div class="loc-text">
+                  <span class="loc-lbl">SHOW</span>
+                  <span class="loc-val">09. 19 (Sat) 4:00 PM</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 미니 구글맵 컬럼 (첨부 이미지 및 구글맵 주소 크게보기 링크) -->
+            <div class="loc-map-col">
+              <a 
+                href="https://maps.google.com/?q=1125+S+Crenshaw+Blvd,+Los+Angeles,+CA+90019" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                class="mini-map-box"
+                title="구글 지도 크게보기"
+              >
+                <img 
+                  src="https://github.com/daroo2314/roman-invitation/blob/main/map.webp?raw=true" 
+                  alt="EK Gallery 위치 지도" 
+                  class="mini-map-img"
+                  loading="lazy"
+                />
+                <div class="map-overlay-badge">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                  <span>지도보기</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </section>
 
         <!-- 프레임 바로 하단 버튼 -->
         <div class="cta-frame-container" id="cta-container">
@@ -578,6 +1123,70 @@
 
   </div>
 
+  <!-- Location Detail Modal (관람안내 및 약도 모바일 크게보기 모달) -->
+  <div class="location-modal-overlay" id="location-detail-modal" onclick="handleLocationOverlayClick(event)">
+    <div class="location-modal-card" onclick="event.stopPropagation()">
+      <button type="button" class="modal-close-btn" onclick="closeLocationModal()" title="닫기" aria-label="닫기">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="modal-title-area">
+        <span class="modal-badge">VENUE & EXHIBITION INFO</span>
+        <h2 class="modal-gallery-name">EK Gallery</h2>
+      </div>
+      
+      <ul class="modal-info-list">
+        <li class="modal-info-item">
+          <i class="fa-solid fa-location-dot"></i>
+          <div>
+            <span class="modal-info-lbl">ADDRESS</span>
+            <span class="modal-info-val">1125 S Crenshaw Blvd, Los Angeles, CA 90019</span>
+          </div>
+        </li>
+        <li class="modal-info-item">
+          <i class="fa-regular fa-clock"></i>
+          <div>
+            <span class="modal-info-lbl">DATE & TIME</span>
+            <span class="modal-info-val">2026. 09. 19 — 09. 25 (11:00 AM - 5:00 PM)</span>
+          </div>
+        </li>
+        <li class="modal-info-item">
+          <i class="fa-solid fa-champagne-glasses"></i>
+          <div>
+            <span class="modal-info-lbl">OPENING RECEPTION</span>
+            <span class="modal-info-val">2026. 09. 19 (Sat) 3:00 PM</span>
+          </div>
+        </li>
+        <li class="modal-info-item">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <div>
+            <span class="modal-info-lbl">SPECIAL PERFORMANCE</span>
+            <span class="modal-info-val">2026. 09. 19 (Sat) 4:00 PM</span>
+          </div>
+        </li>
+      </ul>
+
+      <!-- 지도 약도 이미지 크게보기 -->
+      <div style="width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid rgba(212, 175, 55, 0.4); margin-top: 10px; background: #12100d; box-shadow: 0 4px 14px rgba(0,0,0,0.6);">
+        <img 
+          src="https://github.com/daroo2314/roman-invitation/blob/main/map.webp?raw=true" 
+          alt="EK Gallery 약도" 
+          style="width: 100%; height: auto; display: block;" 
+          loading="lazy"
+        />
+      </div>
+
+      <a 
+        href="https://maps.google.com/?q=1125+S+Crenshaw+Blvd,+Los+Angeles,+CA+90019" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        class="modal-map-link-btn"
+      >
+        <i class="fa-solid fa-diamond-turn-right"></i>
+        <span>Google Maps에서 크게보기 / 길찾기</span>
+      </a>
+    </div>
+  </div>
+
   <!-- Toast Alert -->
   <div class="toast-alert" id="toast-alert">
     초대장 링크가 복사되었습니다.
@@ -592,6 +1201,10 @@
     const galleryFrame = document.getElementById('gallery-frame');
     const zoomIndicator = document.getElementById('zoom-indicator');
     const zoomIndicatorText = document.getElementById('zoom-indicator-text');
+    const frameZoomToggleBtn = document.getElementById('btn-frame-zoom-toggle');
+    const zoomToggleIcon = document.getElementById('zoom-toggle-icon');
+    const zoomToggleText = document.getElementById('zoom-toggle-text');
+    const locationDetailModal = document.getElementById('location-detail-modal');
 
     /* Toast Alert */
     function showToast(message) {
@@ -632,13 +1245,58 @@
     }
 
     /* ----------------------------------------------------
-       IN-FRAME SMOOTH ZOOM ENGINE
-       - 프레임(골드 액자, 매트, 이미지, 명판 전체) 동시 확대/축소
-       - 모바일 핀치 줌인 / 줌아웃 (최소 100% 원본 크기 고정)
-       - 더블탭 100% <-> 220% 부드러운 토글
-       - 확대 상태에서 안정적인 패닝 & 경계 클램핑
-       - 반복 제스처 시 멈춤이나 오류 없는 견고한 렌더링
+       LOCATION DETAIL MODAL CONTROLS (관람안내 모달)
        ---------------------------------------------------- */
+    function openLocationModal(e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      if (!locationDetailModal) return;
+      locationDetailModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLocationModal(e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      if (!locationDetailModal) return;
+      locationDetailModal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function handleLocationOverlayClick(e) {
+      if (e.target === locationDetailModal) {
+        closeLocationModal();
+      }
+    }
+
+    let lastLocTapTime = 0;
+    function handleLocationSectionClick(e) {
+      if (e.target.closest('a') || e.target.closest('button')) return;
+      const now = Date.now();
+      if (now - lastLocTapTime < 350) {
+        openLocationModal();
+        lastLocTapTime = 0;
+        return;
+      }
+      lastLocTapTime = now;
+    }
+
+    /* ----------------------------------------------------
+       GLOBAL PAGE SMOOTH ZOOM & PAN ENGINE
+       - 전체 전역(Global) 줌인/줌아웃 및 패닝 통합 지원
+       - 두 손가락 핀치 줌인/아웃 (100% ~ 350%)
+       - 갤러리 프레임 우측 상단 '확대보기 / 원본크기' 토글 버튼
+         (갤럭시 S24 기준 편지 영역 포커스 및 타 기기 반응형 지원)
+       - 확대 상태에서 화면 어디든 가볍게 터치(탭) 시 즉시 100% 원본 크기 복귀
+       - 관람 안내 섹션(#location) 확대보기는 이전의 상세 모달 팝업으로 복원
+       ---------------------------------------------------- */
+    const frameContainer = document.getElementById('frame-container');
+    const mainStage = document.getElementById('main-stage') || document.body;
+
     let mainScale = 1.0;
     let mainPanX = 0;
     let mainPanY = 0;
@@ -653,19 +1311,41 @@
     let panStartPosX = 0;
     let panStartPosY = 0;
 
+    let touchStartTime = 0;
+    let touchStartClientX = 0;
+    let touchStartClientY = 0;
+    let hasMovedNoticeably = false;
+
     let lastTapTime = 0;
     let rafId = null;
+
+    function updateZoomToggleButton(isZoomed) {
+      if (!frameZoomToggleBtn) return;
+      if (isZoomed) {
+        frameZoomToggleBtn.classList.add('is-zoomed');
+        if (zoomToggleIcon) zoomToggleIcon.className = 'fa-solid fa-magnifying-glass-minus';
+        if (zoomToggleText) zoomToggleText.textContent = '원본크기';
+      } else {
+        frameZoomToggleBtn.classList.remove('is-zoomed');
+        if (zoomToggleIcon) zoomToggleIcon.className = 'fa-solid fa-magnifying-glass-plus';
+        if (zoomToggleText) zoomToggleText.textContent = '확대보기';
+      }
+    }
 
     function renderMainTransform(withTransition = false) {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
-        if (!galleryFrame) return;
-        galleryFrame.style.transition = withTransition ? 'transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
-        galleryFrame.style.transform = `translate3d(${mainPanX}px, ${mainPanY}px, 0px) scale(${mainScale})`;
+        const targetEl = frameContainer || galleryFrame;
+        if (!targetEl) return;
 
-        // 줌 인디케이터 상태 갱신
+        targetEl.style.transition = withTransition ? 'transform 0.3s cubic-bezier(0.18, 0.85, 0.25, 1)' : 'none';
+        targetEl.style.transform = `translate3d(${mainPanX}px, ${mainPanY}px, 0px) scale(${mainScale})`;
+
+        // 줌 인디케이터 및 우측 상단 버튼 상태 갱신
         if (mainScale > 1.05) {
-          galleryFrame.classList.add('is-zoomed');
+          targetEl.classList.add('is-zoomed');
+          if (galleryFrame) galleryFrame.classList.add('is-zoomed');
+          updateZoomToggleButton(true);
           if (zoomIndicator) {
             zoomIndicator.classList.add('visible');
             if (zoomIndicatorText) {
@@ -673,22 +1353,25 @@
             }
           }
         } else {
-          galleryFrame.classList.remove('is-zoomed');
+          targetEl.classList.remove('is-zoomed');
+          if (galleryFrame) galleryFrame.classList.remove('is-zoomed');
+          updateZoomToggleButton(false);
           zoomIndicator?.classList.remove('visible');
         }
       });
     }
 
     function clampMainPan() {
-      if (!galleryFrame || mainScale <= 1.0) {
+      const targetEl = frameContainer || galleryFrame;
+      if (!targetEl || mainScale <= 1.0) {
         mainPanX = 0;
         mainPanY = 0;
         return;
       }
-      const frameW = galleryFrame.offsetWidth || 350;
-      const frameH = galleryFrame.offsetHeight || 500;
-      const maxDeltaX = ((mainScale - 1) * frameW) / 2 + 20;
-      const maxDeltaY = ((mainScale - 1) * frameH) / 2 + 20;
+      const containerW = targetEl.offsetWidth || 342.4;
+      const containerH = targetEl.offsetHeight || 680.0;
+      const maxDeltaX = Math.max(((mainScale - 1) * containerW) / 2 + 70, Math.abs(mainPanX) + 20);
+      const maxDeltaY = Math.max(((mainScale - 1) * containerH) / 2 + 100, Math.abs(mainPanY) + 20);
 
       if (!Number.isFinite(mainPanX)) mainPanX = 0;
       if (!Number.isFinite(mainPanY)) mainPanY = 0;
@@ -708,6 +1391,39 @@
       renderMainTransform(true);
     }
 
+    /* 오른쪽 상단 확대보기 / 원본크기 버튼 토글 (오른쪽 반절 모시는 글 꽉차게 확대) */
+    function toggleRightHalfZoom(e) {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+
+      if (mainScale > 1.08) {
+        resetMainZoom();
+      } else {
+        const frameW = galleryFrame ? galleryFrame.offsetWidth : 342.39;
+        const frameH = galleryFrame ? galleryFrame.offsetHeight : 480.0;
+
+        // 갤럭시 S24 기준 레퍼런스 규격 (S24에서 frameW ≈ 342.39px, frameH ≈ 480px)
+        const S24_REF_W = 342.39;
+        const S24_REF_H = 480.0;
+
+        // 갤럭시 S24 기준 요청 좌표 및 트랜지션:
+        // transition: transform 0.3s cubic-bezier(0.18, 0.85, 0.25, 1);
+        // transform: translate3d(-201.983px, 202.486px, 0px) scale(2.28);
+        // 타 모바일 기기에서도 동일한 비례로 편지 영역이 최적 위치에 노출되도록 비율(ratio) 동적 계산
+        mainScale = 2.28;
+        const ratioX = frameW / S24_REF_W;
+        const ratioY = frameH / S24_REF_H;
+
+        mainPanX = -201.983 * ratioX;
+        mainPanY = 202.486 * ratioY;
+
+        clampMainPan();
+        renderMainTransform(true);
+      }
+    }
+
     function setMainZoom(scale, smooth = true) {
       mainScale = Math.min(Math.max(scale, 1.0), 3.5);
       if (mainScale <= 1.0) {
@@ -719,47 +1435,48 @@
       renderMainTransform(smooth);
     }
 
-    /* Touch Event Listeners (Pinch & Pan on Gallery Frame) */
-    if (galleryFrame) {
-      galleryFrame.addEventListener('touchstart', (e) => {
+    /* ----------------------------------------------------
+       GLOBAL TOUCH & GESTURE LISTENERS
+       - 섹션별이 아닌 전체 전역 줌인/줌아웃
+       ---------------------------------------------------- */
+    const zoomTargetContainer = frameContainer || galleryFrame;
+
+    if (mainStage) {
+      mainStage.addEventListener('touchstart', (e) => {
+        // 모달 열림 상태이거나 일반 버튼 클릭 시에는 기본 제어 유지
+        if (locationDetailModal && locationDetailModal.classList.contains('active')) return;
+
         if (e.touches.length === 2) {
-          // 두 손가락 핀치 줌 시작
+          // 두 손가락 핀치 줌 시작 (전체 전역)
           isPinching = true;
           isPanning = false;
+          hasMovedNoticeably = true;
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
           pinchStartDist = Math.hypot(dx, dy) || 1;
           pinchStartScale = mainScale;
         } else if (e.touches.length === 1) {
-          // 더블탭 판정 (320ms 이내)
-          const now = Date.now();
-          if (now - lastTapTime < 320) {
-            e.preventDefault();
-            if (mainScale > 1.2) {
-              resetMainZoom();
-            } else {
-              setMainZoom(2.2, true);
-            }
-            lastTapTime = 0;
-            return;
-          }
-          lastTapTime = now;
+          touchStartTime = Date.now();
+          touchStartClientX = e.touches[0].clientX;
+          touchStartClientY = e.touches[0].clientY;
+          hasMovedNoticeably = false;
 
-          // 단일 터치: 확대 상태라면 패닝 이동 준비
+          // 단일 터치: 확대 상태라면 전역 패닝 준비
           if (mainScale > 1.0) {
             isPanning = true;
             panStartX = e.touches[0].clientX;
             panStartY = e.touches[0].clientY;
             panStartPosX = mainPanX;
             panStartPosY = mainPanY;
-            galleryFrame.classList.add('is-dragging');
+            zoomTargetContainer?.classList.add('is-dragging');
           }
         }
       }, { passive: false });
 
-      galleryFrame.addEventListener('touchmove', (e) => {
+      mainStage.addEventListener('touchmove', (e) => {
+        if (locationDetailModal && locationDetailModal.classList.contains('active')) return;
+
         if (e.touches.length === 2 && isPinching) {
-          // 핀치 줌 제스처
           e.preventDefault();
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -767,7 +1484,6 @@
           if (pinchStartDist > 0 && currentDist > 0) {
             const factor = currentDist / pinchStartDist;
             let nextScale = pinchStartScale * factor;
-            // 줌인 후 줌아웃은 100%(1.0)까지만 허용 (최소 1.0, 최대 3.5)
             nextScale = Math.min(Math.max(nextScale, 1.0), 3.5);
             mainScale = nextScale;
             if (mainScale <= 1.0) {
@@ -778,23 +1494,57 @@
             }
             renderMainTransform(false);
           }
-        } else if (e.touches.length === 1 && isPanning && mainScale > 1.0) {
-          // 확대 상태에서 자유로운 화면 이동
-          e.preventDefault();
-          const deltaX = e.touches[0].clientX - panStartX;
-          const deltaY = e.touches[0].clientY - panStartY;
-          mainPanX = panStartPosX + deltaX;
-          mainPanY = panStartPosY + deltaY;
-          clampMainPan();
-          renderMainTransform(false);
+        } else if (e.touches.length === 1) {
+          const moveDist = Math.hypot(e.touches[0].clientX - touchStartClientX, e.touches[0].clientY - touchStartClientY);
+          if (moveDist > 8) {
+            hasMovedNoticeably = true;
+          }
+
+          if (isPanning && mainScale > 1.0) {
+            e.preventDefault();
+            const deltaX = e.touches[0].clientX - panStartX;
+            const deltaY = e.touches[0].clientY - panStartY;
+            mainPanX = panStartPosX + deltaX;
+            mainPanY = panStartPosY + deltaY;
+            clampMainPan();
+            renderMainTransform(false);
+          }
         }
       }, { passive: false });
 
-      const onTouchEnd = () => {
+      const onTouchEnd = (e) => {
+        if (locationDetailModal && locationDetailModal.classList.contains('active')) return;
+
+        const touchDuration = Date.now() - touchStartTime;
+
+        // 확대 상태에서 버튼이 아닌 화면을 가볍게 터치(탭)한 경우 즉시 원본 복귀
+        if (mainScale > 1.05 && !hasMovedNoticeably && touchDuration < 320 && !e.target.closest('button, a, .zoom-indicator')) {
+          isPinching = false;
+          isPanning = false;
+          zoomTargetContainer?.classList.remove('is-dragging');
+          resetMainZoom();
+          return;
+        }
+
+        // 미확대 상태에서의 더블탭 제스처
+        if (!hasMovedNoticeably && touchDuration < 320 && !e.target.closest('button, a, .zoom-indicator')) {
+          const now = Date.now();
+          if (now - lastTapTime < 300) {
+            if (mainScale > 1.05) {
+              resetMainZoom();
+            } else {
+              toggleRightHalfZoom();
+            }
+            lastTapTime = 0;
+            return;
+          }
+          lastTapTime = now;
+        }
+
         isPinching = false;
         isPanning = false;
-        galleryFrame.classList.remove('is-dragging');
-        // 1.05 이하일 경우 100%(1.0) 원본 크기로 자동 안착
+        zoomTargetContainer?.classList.remove('is-dragging');
+
         if (mainScale <= 1.05) {
           mainScale = 1.0;
           mainPanX = 0;
@@ -806,63 +1556,72 @@
         }
       };
 
-      galleryFrame.addEventListener('touchend', onTouchEnd);
-      galleryFrame.addEventListener('touchcancel', onTouchEnd);
+      mainStage.addEventListener('touchend', onTouchEnd);
+      mainStage.addEventListener('touchcancel', onTouchEnd);
 
       /* Mouse Wheel & Drag (데스크톱 지원) */
-      galleryFrame.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const delta = -e.deltaY * 0.0015;
-        let nextScale = Math.min(Math.max(mainScale + delta, 1.0), 3.5);
-        mainScale = nextScale;
-        if (mainScale <= 1.0) {
-          mainPanX = 0;
-          mainPanY = 0;
-        } else {
-          clampMainPan();
+      mainStage.addEventListener('wheel', (e) => {
+        if (locationDetailModal && locationDetailModal.classList.contains('active')) return;
+        if (e.ctrlKey || Math.abs(e.deltaY) > 20) {
+          e.preventDefault();
+          const delta = -e.deltaY * 0.0015;
+          let nextScale = Math.min(Math.max(mainScale + delta, 1.0), 3.5);
+          mainScale = nextScale;
+          if (mainScale <= 1.0) {
+            mainPanX = 0;
+            mainPanY = 0;
+          } else {
+            clampMainPan();
+          }
+          renderMainTransform(false);
         }
-        renderMainTransform(false);
       }, { passive: false });
 
       let isMouseDragging = false;
-      let mouseStartX = 0;
-      let mouseStartY = 0;
-      let mouseStartPanX = 0;
-      let mouseStartPanY = 0;
+      let mouseStartX = 0, mouseStartY = 0;
+      let mouseStartPanX = 0, mouseStartPanY = 0;
+      let mouseMovedDist = 0;
 
-      galleryFrame.addEventListener('mousedown', (e) => {
+      mainStage.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, a, .zoom-indicator')) return;
+        mouseMovedDist = 0;
         if (mainScale <= 1.0) return;
         isMouseDragging = true;
         mouseStartX = e.clientX;
         mouseStartY = e.clientY;
         mouseStartPanX = mainPanX;
         mouseStartPanY = mainPanY;
-        galleryFrame.classList.add('is-dragging');
+        zoomTargetContainer?.classList.add('is-dragging');
       });
 
       window.addEventListener('mousemove', (e) => {
         if (!isMouseDragging || mainScale <= 1.0) return;
         const deltaX = e.clientX - mouseStartX;
         const deltaY = e.clientY - mouseStartY;
+        mouseMovedDist = Math.hypot(deltaX, deltaY);
         mainPanX = mouseStartPanX + deltaX;
         mainPanY = mouseStartPanY + deltaY;
         clampMainPan();
         renderMainTransform(false);
       });
 
-      window.addEventListener('mouseup', () => {
+      window.addEventListener('mouseup', (e) => {
         if (isMouseDragging) {
           isMouseDragging = false;
-          galleryFrame.classList.remove('is-dragging');
+          zoomTargetContainer?.classList.remove('is-dragging');
+          if (mouseMovedDist < 5 && mainScale > 1.05 && !e.target.closest('button, a, .zoom-indicator')) {
+            resetMainZoom();
+          }
         }
       });
 
-      galleryFrame.addEventListener('dblclick', (e) => {
+      mainStage.addEventListener('dblclick', (e) => {
+        if (e.target.closest('button, a, .zoom-indicator')) return;
         e.preventDefault();
         if (mainScale > 1.2) {
           resetMainZoom();
         } else {
-          setMainZoom(2.2, true);
+          toggleRightHalfZoom();
         }
       });
     }
@@ -872,6 +1631,23 @@
         e.stopPropagation();
       }, { passive: true });
     }
+
+    if (frameZoomToggleBtn) {
+      frameZoomToggleBtn.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+      }, { passive: true });
+    }
+
+    /* ESC 키 지원 */
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (locationDetailModal && locationDetailModal.classList.contains('active')) {
+          closeLocationModal();
+        } else if (mainScale > 1.05) {
+          resetMainZoom();
+        }
+      }
+    });
   </script>
 </body>
 </html>
